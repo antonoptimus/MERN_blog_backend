@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import { validationResult } from "express-validator";
+
 import UserModel from "../models/User.js";
 
 export const register = async (req, res) => {
@@ -30,9 +30,12 @@ export const register = async (req, res) => {
 
     const { passwordHash, ...userData } = user._doc;
 
-    res.json({ ...userData, token });
-  } catch (error) {
-    console.log(error);
+    res.json({
+      ...userData,
+      token,
+    });
+  } catch (err) {
+    console.log(err);
     res.status(500).json({
       message: "Не удалось зарегистрироваться",
     });
@@ -55,7 +58,7 @@ export const login = async (req, res) => {
     );
 
     if (!isValidPass) {
-      return res.status(404).json({
+      return res.status(400).json({
         message: "Неверный логин или пароль",
       });
     }
@@ -72,9 +75,12 @@ export const login = async (req, res) => {
 
     const { passwordHash, ...userData } = user._doc;
 
-    res.json({ ...userData, token });
-  } catch (error) {
-    console.log(error);
+    res.json({
+      ...userData,
+      token,
+    });
+  } catch (err) {
+    console.log(err);
     res.status(500).json({
       message: "Не удалось авторизоваться",
     });
@@ -87,17 +93,17 @@ export const getMe = async (req, res) => {
 
     if (!user) {
       return res.status(404).json({
-        message: "Пользователь не найден!",
+        message: "Пользователь не найден",
       });
     }
 
     const { passwordHash, ...userData } = user._doc;
 
     res.json(userData);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).json({
-      message: "Нет доступа!",
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Нет доступа",
     });
   }
 };

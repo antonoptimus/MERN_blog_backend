@@ -1,38 +1,46 @@
 import express from "express";
-import mongoose from "mongoose";
+import fs from "fs";
 import multer from "multer";
+import cors from "cors";
+
+import mongoose from "mongoose";
+
 import {
   registerValidation,
   loginValidation,
   postCreateValidation,
 } from "./validations.js";
 
-import { checkAuth, handleValidationErrors } from "./utils/index.js";
+import { handleValidationErrors, checkAuth } from "./utils/index.js";
 
-import { PostController, UserController } from "./controllers/index.js";
+import { UserController, PostController } from "./controllers/index.js";
 
 mongoose
   .connect(
     "mongodb+srv://admin:wwwwww@cluster0.qxwbdst.mongodb.net/blog?retryWrites=true&w=majority"
   )
   .then(() => console.log("DB ok"))
-  .catch((error) => console.log("DB error", error));
+  .catch((err) => console.log("DB error", err));
 
 const app = express();
 
 const storage = multer.diskStorage({
-  destination: (_, __, callback) => {
-    callback(null, "uploads");
+  destination: (_, __, cb) => {
+    if (!fs.existsSync("uploads")) {
+      fs.mkdirSync("uploads");
+    }
+    cb(null, "uploads");
   },
-  filename: (_, file, callback) => {
-    callback(null, file.originalname);
+  filename: (_, file, cb) => {
+    cb(null, file.originalname);
   },
 });
 
 const upload = multer({ storage });
 
 app.use(express.json());
-app.use("/uploads/", express.static("uploads"));
+app.use(cors());
+app.use("/uploads", express.static("uploads"));
 
 app.post(
   "/auth/login",
@@ -40,14 +48,12 @@ app.post(
   handleValidationErrors,
   UserController.login
 );
-
 app.post(
   "/auth/register",
   registerValidation,
   handleValidationErrors,
   UserController.register
 );
-
 app.get("/auth/me", checkAuth, UserController.getMe);
 
 app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
@@ -56,7 +62,10 @@ app.post("/upload", checkAuth, upload.single("image"), (req, res) => {
   });
 });
 
+app.get("/tags", PostController.getLastTags);
+
 app.get("/posts", PostController.getAll);
+app.get("/posts/tags", PostController.getLastTags);
 app.get("/posts/:id", PostController.getOne);
 app.post(
   "/posts",
@@ -74,7 +83,7 @@ app.patch(
   PostController.update
 );
 
-app.listen(4444, (err) => {
+app.listen(process.env.PORT || 4444, (err) => {
   if (err) {
     return console.log(err);
   }
