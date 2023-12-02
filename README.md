@@ -60,3 +60,5 @@ A unique JWT is generated for each user, which is used for authentication. The s
 [Link to Deployed Website](https://mern-project-frontend-pi.vercel.app/)
 
 For more details on the frontend functionality, please refer to the [Frontend Repository](https://github.com/antonoptimus/MERN_blog_frontend).
+
+
